@@ -8,8 +8,12 @@ from datetime import datetime
 
 load_dotenv()
 
-LOG_MODE = os.getenv("LOG_MODE", "verbose")  # Set to 'verbose' or 'eval_only'
-LOG_FILE = os.getenv("LOG_FILE", "evaluation_log.txt")
+LOG_MODE = os.getenv("LOG_MODE")
+if LOG_MODE is None:
+    raise ValueError("LOG_MODE is not set in .env. Please explicitly set LOG_MODE='verbose' or 'eval_only'.")
+else:
+    LOG_MODE = LOG_MODE.strip().lower()
+LOG_FILE = os.getenv("LOG_FILE")
 
 def llm_follow_up(system_prompt: str, user_prompt: str) -> str:
     response = client.chat.completions.create(

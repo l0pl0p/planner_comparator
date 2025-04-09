@@ -26,5 +26,3 @@ __pycache__/
 
 # Pytest cache
 .cache/
-
-evaluation_log.txt
