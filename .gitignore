@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+.env.*
+
+# VSCode settings (if you're using it)
+.vscode/
+
+# MacOS junk files
+.DS_Store
+
+# Logs / outputs
+*.log
+
+# Jupyter checkpoints (just in case)
+.ipynb_checkpoints/
+
+# Pytest cache
+.cache/
