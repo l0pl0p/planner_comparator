@@ -27,8 +27,13 @@ def llm_follow_up(system_prompt: str, user_prompt: str) -> str:
 
 def log_results(content: str):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(LOG_FILE, "a") as file:
-        file.write(f"[{timestamp}]\n{content}\n{'-'*80}\n")
+    log_path = os.path.abspath(LOG_FILE)
+    try:
+        with open(log_path, "a+", encoding="utf-8") as file:
+            file.write(f"[{timestamp}]\n{content}\n{'-'*80}\n")
+        print(f"Successfully logged to {log_path}")
+    except Exception as e:
+        print(f"Failed logging to {log_path}: {e}")
 
 def main():
     subject = os.getenv("SUBJECT")
@@ -54,8 +59,6 @@ def main():
         log_results(verbose_log)
     elif LOG_MODE == "eval_only":
         eval_only_log = (f"Subject: {subject}\n\n"
-                         f"Prompt Analysis:\n{prompt_analysis}\n\n"
-                         f"Prolog Analysis:\n{prolog_analysis}\n\n"
                          f"Analysis-Based Judgment:\n{analysis_based_judgment}")
         log_results(eval_only_log)
 
