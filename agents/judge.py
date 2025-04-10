@@ -1,29 +1,32 @@
 import os
-from utils.azure_openai import client
 from dotenv import load_dotenv
+from utils.client import client
+from utils.template_loader import render_template
 
 load_dotenv()
 
+MODEL_JUDGE = os.getenv("MODEL_JUDGE")
+
 def judge_outputs(prompt_plan: str, prolog_plan: str, judge_type: str = "plans") -> str:
     if judge_type == "plans":
-        system_prompt = os.getenv("JUDGE_PROMPT_SYSTEM_PLANS")
-        user_prompt_template = os.getenv("JUDGE_PROMPT_USER_TEMPLATE_PLANS")
+        system_prompt = render_template("judge_system_prompt_plans.jinja")
+        user_prompt = render_template(
+            "judge_user_prompt_plans.jinja",
+            prompt_plan=prompt_plan,
+            prolog_plan=prolog_plan
+        )
     elif judge_type == "analysis":
-        system_prompt = os.getenv("JUDGE_PROMPT_SYSTEM_ANALYSIS")
-        user_prompt_template = os.getenv("JUDGE_PROMPT_USER_TEMPLATE_ANALYSIS")
+        system_prompt = render_template("judge_system_prompt_analysis.jinja")
+        user_prompt = render_template(
+            "judge_user_prompt_analysis.jinja",
+            prompt_plan=prompt_plan,
+            prolog_plan=prolog_plan
+        )
     else:
         raise ValueError("Invalid judge_type provided.")
 
-    if not system_prompt or not user_prompt_template:
-        raise ValueError("Required prompts not found in environment variables.")
-
-    user_prompt = user_prompt_template.format(
-        prompt_plan=prompt_plan,
-        prolog_plan=prolog_plan
-    )
-
     response = client.chat.completions.create(
-        model=os.getenv("AZURE_MODEL_JUDGE"),
+        model=MODEL_JUDGE,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
