@@ -65,14 +65,29 @@ def main():
             scores_neuro = aggregate_scores(neuro_eval)
 
             criteria = ['Accuracy', 'Completeness', 'Domain Relevance', 'Robustness']
+            eval_types = ['holistic', 'domain_specific', 'safety_ethics']
+
             total_trad = total_neuro = 0
 
-            # Table headers with precise alignment
+            # Header
             eval_table = f"Question #{idx}: {subject}\n\n"
+
+            # Detailed per-type scores
+            for eval_type in eval_types:
+                eval_table += f"### {eval_type.replace('_', ' ').title()} Scores\n"
+                eval_table += "| Criterion         | Traditional | Neuro-symbolic |\n"
+                eval_table += "|-------------------|-------------|----------------|\n"
+                
+                for criterion in criteria:
+                    trad_score = trad_eval[eval_type]['scores'].get(criterion, 'N/A')
+                    neuro_score = neuro_eval[eval_type]['scores'].get(criterion, 'N/A')
+                    eval_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
+                eval_table += "\n"
+
+            # Aggregated summary scores
+            eval_table += "### Aggregated Scores\n"
             eval_table += "| Criterion         | Traditional | Neuro-symbolic |\n"
             eval_table += "|-------------------|-------------|----------------|\n"
-
-            # Rows of criteria
             for criterion in criteria:
                 trad_score = scores_trad.get(criterion, 'N/A')
                 neuro_score = scores_neuro.get(criterion, 'N/A')
@@ -81,10 +96,11 @@ def main():
 
                 eval_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
 
-            # Total scores
             eval_table += "|-------------------|-------------|----------------|\n"
             eval_table += f"| **Total**         | {total_trad:^11} | {total_neuro:^14} |\n"
 
+            # Logging medium-level detailed scores
+            log_result("medium", eval_table, config)
 
             detailed_log = (
                 f"{eval_table}\n\n"

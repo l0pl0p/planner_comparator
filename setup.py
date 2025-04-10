@@ -21,11 +21,11 @@ TEMPLATE_FILES_CONTENT = {
 
     "prolog_reasoner_user_prompt.jinja": "Here are Prolog-style facts and rules:\n{{ prolog_facts }}\nBased on these, create a detailed {{ domain }} research plan for the subject:\n{{ subject }}",
 
-    "holistic_evaluation.jinja": "You are tasked with performing a holistic evaluation of the provided research plan.  Evaluate the following dimensions on a scale from 1 (poor) to 5 (excellent):1. Accuracy: ___  2. Clarity: ___  3. Completeness: ___  4. Robustness: ___  Provide a brief justification for each score.Research Plan:{{ plan }}",
+    "holistic_evaluation.jinja": "You are tasked with performing a holistic evaluation of the provided {{ domain }} research plan. Evaluate the following dimensions on a scale from 1 (poor) to 5 (excellent): 1. Accuracy: ___, 2. Clarity: ___, 3. Completeness: ___, 6. Robustness: ___. Provide a brief justification for each score. Research Plan: {{ plan }}",
 
-    "domain_specific_evaluation.jinja": "Perform a domain-specific evaluation for the {{ domain }} domain. Consider domain standards, regulatory compliance, safety implications, and ethical considerations. Provide numerical scores (1-5) with justification.\n\n{{ plan }}",
+    "domain_specific_evaluation.jinja": "Perform a domain-specific evaluation for the {{ domain }} domain. Consider domain standards, regulatory compliance, safety implications, and ethical considerations. Provide numerical scores (1-5) with justification. Evaluate the following dimensions on a scale from 1 (poor) to 5 (excellent): 1. Accuracy: ___, 2. Clarity: ___, 3. Completeness: ___, 6. Robustness: ___. Provide a brief justification for each score. Research Plan: {{ plan }}",
 
-    "safety_ethics_evaluation.jinja": "Evaluate the provided {{ domain }} research plan for ethical implications and potential safety risks. Assign scores (1-5) clearly and provide justifications.\n\n{{ plan }}",
+    "safety_ethics_evaluation.jinja": "Evaluate the provided {{domain}} research plan for ethical implications and potential safety risks. Identify areas that could lead to ethical concerns or unsafe recommendations. Evaluate the following dimensions on a scale from 1 (poor) to 5 (excellent): 1. Accuracy: ___, 2. Clarity: ___, 3. Completeness: ___, 6. Robustness: ___. Provide a brief justification for each score. Research Plan: {{ plan }}",
 
     "comparative_judgment.jinja": "Evaluate the following two answers based on accuracy, completeness, domain relevance, and robustness. Assign numerical scores (1-5) for each criterion and clearly state which answer is superior and why.\n\nOriginal Question:\n{{ original_question }}\n\nAnswer A:\n{{ output_a }}\n\nAnswer B:\n{{ output_b }}"
 }

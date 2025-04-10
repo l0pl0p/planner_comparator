@@ -1,17 +1,42 @@
-[2025-04-10 09:33:33] [LOW]
+[2025-04-10 09:56:31] [LOW]
 FINAL BATCH EVALUATION
 Domain: legal
 ================================================================================
-Question #1: what are the rules in Ohio for a current employee requesting a copy of their personnel file
+Question #1: Write a relocation agreement where a company will pay an employee up to $75,000 for relocation expenses with documentation. If the employee leaves  voluntarily after year, the employee has to repay 50
 
+### Holistic Scores
+| Criterion         | Traditional | Neuro-symbolic |
+|-------------------|-------------|----------------|
+| Accuracy          |      4      |       4        |
+| Completeness      |      4      |       5        |
+| Domain Relevance  |     N/A     |      N/A       |
+| Robustness        |      4      |       4        |
+
+### Domain Specific Scores
+| Criterion         | Traditional | Neuro-symbolic |
+|-------------------|-------------|----------------|
+| Accuracy          |      4      |       4        |
+| Completeness      |      4      |       5        |
+| Domain Relevance  |     N/A     |      N/A       |
+| Robustness        |      4      |       5        |
+
+### Safety Ethics Scores
 | Criterion         | Traditional | Neuro-symbolic |
 |-------------------|-------------|----------------|
 | Accuracy          |      3      |       4        |
-| Completeness      |      3      |       5        |
+| Completeness      |      3      |       4        |
 | Domain Relevance  |     N/A     |      N/A       |
-| Robustness        |      3      |       4        |
+| Robustness        |      2      |       3        |
+
+### Aggregated Scores
+| Criterion         | Traditional | Neuro-symbolic |
 |-------------------|-------------|----------------|
-| **Total**         |      9      |       13       |
+| Accuracy          |     11      |       12       |
+| Completeness      |     11      |       14       |
+| Domain Relevance  |     N/A     |      N/A       |
+| Robustness        |     10      |       12       |
+|-------------------|-------------|----------------|
+| **Total**         |     32      |       38       |
 
 ================================================================================
 --------------------------------------------------------------------------------
