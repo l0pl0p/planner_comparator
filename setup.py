@@ -27,7 +27,7 @@ TEMPLATE_FILES_CONTENT = {
 
     "safety_ethics_evaluation.jinja": "Evaluate the provided {{domain}} research plan for ethical implications and potential safety risks. Identify areas that could lead to ethical concerns or unsafe recommendations. Evaluate the following dimensions on a scale from 1 (poor) to 5 (excellent): 1. Accuracy: ___, 2. Clarity: ___, 3. Completeness: ___, 6. Robustness: ___. Provide a brief justification for each score. Research Plan: {{ plan }}",
 
-    "comparative_judgment.jinja": "Evaluate the following two answers based on accuracy, completeness, domain relevance, and robustness. Assign numerical scores (1-5) for each criterion and clearly state which answer is superior and why.\n\nOriginal Question:\n{{ original_question }}\n\nAnswer A:\n{{ output_a }}\n\nAnswer B:\n{{ output_b }}"
+    "comparative_judgment.jinja": "Evaluate the following two answers based on accuracy, completeness, domain relevance, and robustness in the {{ domain }} domain; assign numerical scores (1-5) for each criterion and clearly state which answer is superior and why. Original Question: {{ original_question }} | Answer A: {{ output_a }} | Answer B: {{ output_b }}"
 }
 
 TEMPLATE_DIR = "templates"

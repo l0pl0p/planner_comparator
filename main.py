@@ -54,6 +54,7 @@ def main():
 
     for idx, subject in enumerate(subjects, 1):
         print(f"Processing Question #{idx}: {subject}")
+        
         try:
             trad_plan = render_template("prompt_persona_system_message.jinja", question=subject)
             neuro_plan = render_template("prolog_structure_prompt.jinja", question=subject)
@@ -64,7 +65,7 @@ def main():
             scores_trad = aggregate_scores(trad_eval)
             scores_neuro = aggregate_scores(neuro_eval)
 
-            criteria = ['Accuracy', 'Completeness', 'Domain Relevance', 'Robustness']
+            criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
             eval_types = ['holistic', 'domain_specific', 'safety_ethics']
 
             total_trad = total_neuro = 0
@@ -85,30 +86,28 @@ def main():
                 eval_table += "\n"
 
             # Aggregated summary scores
-            eval_table += "### Aggregated Scores\n"
-            eval_table += "| Criterion         | Traditional | Neuro-symbolic |\n"
-            eval_table += "|-------------------|-------------|----------------|\n"
             for criterion in criteria:
                 trad_score = scores_trad.get(criterion, 'N/A')
                 neuro_score = scores_neuro.get(criterion, 'N/A')
                 total_trad += trad_score if isinstance(trad_score, int) else 0
                 total_neuro += neuro_score if isinstance(neuro_score, int) else 0
 
-                eval_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
-
-            eval_table += "|-------------------|-------------|----------------|\n"
-            eval_table += f"| **Total**         | {total_trad:^11} | {total_neuro:^14} |\n"
-
             # Logging medium-level detailed scores
             log_result("medium", eval_table, config)
 
             detailed_log = (
                 f"{eval_table}\n\n"
-                f"Traditional Detailed Evaluation:\n{json.dumps(trad_eval, indent=2)}\n\n"
-                f"Neuro-symbolic Detailed Evaluation:\n{json.dumps(neuro_eval, indent=2)}"
+                f"Trad Prompt Engineered Detailed Evaluation:\n"
+                f"Holistic:\n{trad_eval['holistic']['text']}\n\n"
+                f"Domain Specific:\n{trad_eval['domain_specific']['text']}\n\n"
+                f"Safety Ethics:\n{trad_eval['safety_ethics']['text']}\n\n"
+                f"Neuro-symbolic Detailed Evaluation:\n"
+                f"Holistic:\n{neuro_eval['holistic']['text']}\n\n"
+                f"Domain Specific:\n{neuro_eval['domain_specific']['text']}\n\n"
+                f"Safety Ethics:\n{neuro_eval['safety_ethics']['text']}"
             )
 
-            log_result("medium", eval_table, config)
+
             log_result("high", detailed_log, config)
 
             final_results.append(eval_table)
@@ -120,12 +119,41 @@ def main():
             final_results.append(error_msg)
 
     overall_judgment = ("\n" + "-" * 21 + "\n").join(final_results)
+    # Accumulate totals during your evaluation loop
+    final_results_summary = []
+
+    for idx, subject in enumerate(subjects, 1):
+        # existing evaluation logic here...
+
+        # Aggregate summary per question (exactly your "Aggregated Scores" table)
+        summary_table = (
+            f"Question #{idx}: {subject}\n\n"
+            "### Aggregated Scores\n"
+            "| Criterion         | Traditional | Neuro-symbolic |\n"
+            "|-------------------|-------------|----------------|\n"
+        )
+
+        criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
+        for criterion in criteria:
+            trad_score = scores_trad.get(criterion, 'N/A')
+            neuro_score = scores_neuro.get(criterion, 'N/A')
+            summary_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
+
+        summary_table += "|-------------------|-------------|----------------|\n"
+        summary_table += f"| **Total**         | {total_trad:^11} | {total_neuro:^14} |\n"
+
+        final_results_summary.append(summary_table)
+
+    # After the loop completes, log only aggregated summaries at LOW level
     final_log_content = (
-        f"FINAL BATCH EVALUATION\nDomain: {domain}\n{'='*80}\n"
-        f"{overall_judgment}\n{'='*80}"
+        f"FINAL BATCH AGGREGATED SUMMARY\nDomain: {domain}\n{'='*80}\n"
+        + ("\n" + "-" * 80 + "\n").join(final_results_summary) +
+        f"\n{'='*80}"
     )
 
     log_result("low", final_log_content, config)
+
+
     print("Sequential evaluation completed and final judgment logged.")
 
 if __name__ == "__main__":

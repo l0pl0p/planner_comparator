@@ -50,7 +50,7 @@ def comparative_judgment(output_a: str, output_b: str, original_question: str) -
     }
 
 def parse_comparative_scores(text: str):
-    pattern = r'\|\s*(Accuracy|Completeness|Domain Relevance|Robustness)\s*\|\s*(\d)\s*\|\s*(\d)\s*\|'
+    pattern = r'\|\s*(Accuracy|Clarity|Completeness|Domain Relevance|Robustness)\s*\|\s*(\d)\s*\|\s*(\d)\s*\|'
     matches = re.findall(pattern, text)
 
     scores_a = {criterion: int(a_score) for criterion, a_score, _ in matches}
