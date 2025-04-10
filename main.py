@@ -37,124 +37,103 @@ def log_result(log_level, content, config):
         except Exception as e:
             print(f"Logging failed ({log_level}): {e}")
 
-def aggregate_scores(eval_dict):
-    aggregated = {}
-    for evaluation in eval_dict.values():
-        for criterion, score in evaluation['scores'].items():
-            aggregated[criterion] = aggregated.get(criterion, 0) + score
-    return aggregated
-
 def main():
     config = load_config()
     subjects = load_subjects(config["subjects_file"], config["num_questions"], config["randomize_questions"])
     domain = config["domain"]
-
     print(f"Running evaluation sequentially on {len(subjects)} question(s).")
-    final_results = []
+
+    criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
+    eval_types = ['holistic', 'domain_specific', 'safety_ethics']
+
+    cumulative_totals = {'Traditional':{c:[] for c in criteria}, 'Neuro-symbolic':{c:[] for c in criteria}}
+    question_aggregates = []
 
     for idx, subject in enumerate(subjects, 1):
         print(f"Processing Question #{idx}: {subject}")
-        
-        try:
-            trad_plan = render_template("prompt_persona_system_message.jinja", question=subject)
-            neuro_plan = render_template("prolog_structure_prompt.jinja", question=subject)
+        trad_plan = render_template("prompt_persona_system_message.jinja", question=subject)
+        neuro_plan = render_template("prolog_structure_prompt.jinja", question=subject)
 
-            trad_eval = comprehensive_evaluation(trad_plan, domain)
-            neuro_eval = comprehensive_evaluation(neuro_plan, domain)
+        trad_eval = comprehensive_evaluation(trad_plan, domain)
+        neuro_eval = comprehensive_evaluation(neuro_plan, domain)
 
-            scores_trad = aggregate_scores(trad_eval)
-            scores_neuro = aggregate_scores(neuro_eval)
-
-            criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
-            eval_types = ['holistic', 'domain_specific', 'safety_ethics']
-
-            total_trad = total_neuro = 0
-
-            # Header
-            eval_table = f"Question #{idx}: {subject}\n\n"
-
-            # Detailed per-type scores
-            for eval_type in eval_types:
-                eval_table += f"### {eval_type.replace('_', ' ').title()} Scores\n"
-                eval_table += "| Criterion         | Traditional | Neuro-symbolic |\n"
-                eval_table += "|-------------------|-------------|----------------|\n"
-                
-                for criterion in criteria:
-                    trad_score = trad_eval[eval_type]['scores'].get(criterion, 'N/A')
-                    neuro_score = neuro_eval[eval_type]['scores'].get(criterion, 'N/A')
-                    eval_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
-                eval_table += "\n"
-
-            # Aggregated summary scores
+        detailed_table = f"Question #{idx}: {subject}\n\n"
+        for eval_type in eval_types:
+            detailed_table += f"### {eval_type.replace('_', ' ').title()} Scores\n"
+            detailed_table += "| Criterion         | Traditional | Neuro-symbolic |\n"
+            detailed_table += "|-------------------|-------------|----------------|\n"
+            trad_total, neuro_total, trad_count, neuro_count = 0, 0, 0, 0
             for criterion in criteria:
-                trad_score = scores_trad.get(criterion, 'N/A')
-                neuro_score = scores_neuro.get(criterion, 'N/A')
-                total_trad += trad_score if isinstance(trad_score, int) else 0
-                total_neuro += neuro_score if isinstance(neuro_score, int) else 0
+                t_score = trad_eval[eval_type]['scores'].get(criterion, 'N/A')
+                n_score = neuro_eval[eval_type]['scores'].get(criterion, 'N/A')
+                detailed_table += f"| {criterion:<17} | {str(t_score):^11} | {str(n_score):^14} |\n"
 
-            # Logging medium-level detailed scores
-            log_result("medium", eval_table, config)
+                if isinstance(t_score, int):
+                    trad_total += t_score
+                    trad_count += 1
+                if isinstance(n_score, int):
+                    neuro_total += n_score
+                    neuro_count += 1
 
-            detailed_log = (
-                f"{eval_table}\n\n"
-                f"Trad Prompt Engineered Detailed Evaluation:\n"
-                f"Holistic:\n{trad_eval['holistic']['text']}\n\n"
-                f"Domain Specific:\n{trad_eval['domain_specific']['text']}\n\n"
-                f"Safety Ethics:\n{trad_eval['safety_ethics']['text']}\n\n"
-                f"Neuro-symbolic Detailed Evaluation:\n"
-                f"Holistic:\n{neuro_eval['holistic']['text']}\n\n"
-                f"Domain Specific:\n{neuro_eval['domain_specific']['text']}\n\n"
-                f"Safety Ethics:\n{neuro_eval['safety_ethics']['text']}"
-            )
+            trad_avg = round(trad_total/trad_count,2) if trad_count else 'N/A'
+            neuro_avg = round(neuro_total/neuro_count,2) if neuro_count else 'N/A'
 
+            detailed_table += "|-------------------|-------------|----------------|\n"
+            detailed_table += f"| **Average**       | {trad_avg:^11} | {neuro_avg:^14} |\n\n"
 
-            log_result("high", detailed_log, config)
+        log_result("medium", detailed_table, config)
 
-            final_results.append(eval_table)
-
-        except Exception as e:
-            error_msg = f"Error processing Question #{idx}: {subject}\n{e}"
-            print(error_msg)
-            log_result("high", error_msg, config)
-            final_results.append(error_msg)
-
-    overall_judgment = ("\n" + "-" * 21 + "\n").join(final_results)
-    # Accumulate totals during your evaluation loop
-    final_results_summary = []
-
-    for idx, subject in enumerate(subjects, 1):
-        # existing evaluation logic here...
-
-        # Aggregate summary per question (exactly your "Aggregated Scores" table)
-        summary_table = (
-            f"Question #{idx}: {subject}\n\n"
-            "### Aggregated Scores\n"
-            "| Criterion         | Traditional | Neuro-symbolic |\n"
-            "|-------------------|-------------|----------------|\n"
-        )
-
-        criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
+        q_aggregate = {'Traditional':{}, 'Neuro-symbolic':{}}
         for criterion in criteria:
-            trad_score = scores_trad.get(criterion, 'N/A')
-            neuro_score = scores_neuro.get(criterion, 'N/A')
-            summary_table += f"| {criterion:<17} | {str(trad_score):^11} | {str(neuro_score):^14} |\n"
+            trad_scores = [trad_eval[et]['scores'].get(criterion) for et in eval_types if isinstance(trad_eval[et]['scores'].get(criterion), int)]
+            neuro_scores = [neuro_eval[et]['scores'].get(criterion) for et in eval_types if isinstance(neuro_eval[et]['scores'].get(criterion), int)]
 
-        summary_table += "|-------------------|-------------|----------------|\n"
-        summary_table += f"| **Total**         | {total_trad:^11} | {total_neuro:^14} |\n"
+            trad_avg = round(sum(trad_scores)/len(trad_scores),2) if trad_scores else 'N/A'
+            neuro_avg = round(sum(neuro_scores)/len(neuro_scores),2) if neuro_scores else 'N/A'
 
-        final_results_summary.append(summary_table)
+            q_aggregate['Traditional'][criterion] = trad_avg
+            q_aggregate['Neuro-symbolic'][criterion] = neuro_avg
 
-    # After the loop completes, log only aggregated summaries at LOW level
-    final_log_content = (
-        f"FINAL BATCH AGGREGATED SUMMARY\nDomain: {domain}\n{'='*80}\n"
-        + ("\n" + "-" * 80 + "\n").join(final_results_summary) +
-        f"\n{'='*80}"
-    )
+            cumulative_totals['Traditional'][criterion] += trad_scores
+            cumulative_totals['Neuro-symbolic'][criterion] += neuro_scores
 
-    log_result("low", final_log_content, config)
+        question_aggregates.append((subject, q_aggregate))
 
+    final_log = f"FINAL BATCH AGGREGATED SUMMARY\nDomain: {domain}\n{'='*80}\n"
 
-    print("Sequential evaluation completed and final judgment logged.")
+    for idx, (subject, totals) in enumerate(question_aggregates,1):
+        final_log += f"\n### Question #{idx} Aggregates: {subject}\n"
+        final_log += "| Criterion         | Traditional | Neuro-symbolic |\n"
+        final_log += "|-------------------|-------------|----------------|\n"
+        for criterion in criteria:
+            t = totals['Traditional'][criterion]
+            n = totals['Neuro-symbolic'][criterion]
+            final_log += f"| {criterion:<17} | {t:^11} | {n:^14} |\n"
+
+    final_log += f"\n{'-'*80}\n### Final Aggregate (All Questions Combined)\n"
+    final_log += "| Criterion         | Traditional | Neuro-symbolic |\n"
+    final_log += "|-------------------|-------------|----------------|\n"
+    grand_trad, grand_neuro = [], []
+    for criterion in criteria:
+        trad_list = cumulative_totals['Traditional'][criterion]
+        neuro_list = cumulative_totals['Neuro-symbolic'][criterion]
+
+        trad_final_avg = round(sum(trad_list)/len(trad_list),2) if trad_list else 'N/A'
+        neuro_final_avg = round(sum(neuro_list)/len(neuro_list),2) if neuro_list else 'N/A'
+
+        grand_trad += trad_list
+        grand_neuro += neuro_list
+
+        final_log += f"| {criterion:<17} | {trad_final_avg:^11} | {neuro_final_avg:^14} |\n"
+
+    trad_grand_avg = round(sum(grand_trad)/len(grand_trad),2) if grand_trad else 'N/A'
+    neuro_grand_avg = round(sum(grand_neuro)/len(grand_neuro),2) if grand_neuro else 'N/A'
+
+    final_log += "|-------------------|-------------|----------------|\n"
+    final_log += f"| **Grand Avg**     | {trad_grand_avg:^11} | {neuro_grand_avg:^14} |\n"
+    final_log += f"{'='*80}\n"
+
+    log_result("low", final_log, config)
 
 if __name__ == "__main__":
     main()
