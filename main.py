@@ -123,38 +123,54 @@ def main():
 
     final_log = f"FINAL BATCH AGGREGATED SUMMARY\nDomain: {domain}\n{'='*80}\n"
 
-    for idx, (subject, totals) in enumerate(question_aggregates,1):
+    for idx, (subject, totals) in enumerate(question_aggregates, 1):
         final_log += f"\n### Question #{idx} Aggregates: {subject}\n"
         final_log += "| Criterion         | Traditional | Neuro-symbolic |\n"
         final_log += "|-------------------|-------------|----------------|\n"
+        trad_question_total, neuro_question_total, criterion_count = 0, 0, 0
         for criterion in criteria:
             t = totals['Traditional'][criterion]
             n = totals['Neuro-symbolic'][criterion]
             final_log += f"| {criterion:<17} | {t:^11} | {n:^14} |\n"
 
+            if isinstance(t, (int, float)):
+                trad_question_total += t
+            if isinstance(n, (int, float)):
+                neuro_question_total += n
+            criterion_count += 1
+
+        trad_question_avg = round(trad_question_total / criterion_count, 2)
+        neuro_question_avg = round(neuro_question_total / criterion_count, 2)
+
+        final_log += "|-------------------|-------------|----------------|\n"
+        final_log += f"| **Question Avg**  | {trad_question_avg:^11} | {neuro_question_avg:^14} |\n"
+
     final_log += f"\n{'-'*80}\n### Final Aggregate (All Questions Combined)\n"
     final_log += "| Criterion         | Traditional | Neuro-symbolic |\n"
     final_log += "|-------------------|-------------|----------------|\n"
-    grand_trad, grand_neuro = [], []
+    grand_trad, grand_neuro, grand_criterion_count = 0, 0, 0
+
     for criterion in criteria:
         trad_list = cumulative_totals['Traditional'][criterion]
         neuro_list = cumulative_totals['Neuro-symbolic'][criterion]
 
-        trad_final_avg = round(sum(trad_list)/len(trad_list),2) if trad_list else 'N/A'
-        neuro_final_avg = round(sum(neuro_list)/len(neuro_list),2) if neuro_list else 'N/A'
-
-        grand_trad += trad_list
-        grand_neuro += neuro_list
+        trad_final_avg = round(sum(trad_list) / len(trad_list), 2) if trad_list else 'N/A'
+        neuro_final_avg = round(sum(neuro_list) / len(neuro_list), 2) if neuro_list else 'N/A'
 
         final_log += f"| {criterion:<17} | {trad_final_avg:^11} | {neuro_final_avg:^14} |\n"
 
-    trad_grand_avg = round(sum(grand_trad)/len(grand_trad),2) if grand_trad else 'N/A'
-    neuro_grand_avg = round(sum(grand_neuro)/len(grand_neuro),2) if grand_neuro else 'N/A'
+        if isinstance(trad_final_avg, (int, float)):
+            grand_trad += trad_final_avg
+        if isinstance(neuro_final_avg, (int, float)):
+            grand_neuro += neuro_final_avg
+        grand_criterion_count += 1
+
+    trad_grand_avg = round(grand_trad / grand_criterion_count, 2)
+    neuro_grand_avg = round(grand_neuro / grand_criterion_count, 2)
 
     final_log += "|-------------------|-------------|----------------|\n"
     final_log += f"| **Grand Avg**     | {trad_grand_avg:^11} | {neuro_grand_avg:^14} |\n"
     final_log += f"{'='*80}\n"
-
     log_result("low", final_log, config)
 
 if __name__ == "__main__":
