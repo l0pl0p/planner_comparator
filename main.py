@@ -3,7 +3,7 @@ import json
 import random
 from dotenv import load_dotenv
 from datetime import datetime
-from agents.method_comparator import comprehensive_evaluation
+from agents.method_comparator import evaluate_methods
 from utils.template_loader import render_template
 
 load_dotenv()
@@ -43,7 +43,7 @@ def main():
     domain = config["domain"]
     print(f"Running evaluation sequentially on {len(subjects)} question(s).")
 
-    criteria = ['Accuracy', 'Clarity', 'Completeness', 'Domain Relevance', 'Robustness']
+    criteria = ['Accuracy', 'Quality', 'Completeness', 'Adaptability', 'Domain Relevance', 'Robustness']
     eval_types = ['holistic', 'domain_specific', 'safety_ethics']
 
     cumulative_totals = {'Traditional':{c:[] for c in criteria}, 'Neuro-symbolic':{c:[] for c in criteria}}
@@ -51,12 +51,33 @@ def main():
 
     for idx, subject in enumerate(subjects, 1):
         print(f"Processing Question #{idx}: {subject}")
-        trad_plan = render_template("prompt_persona_system_message.jinja", question=subject)
-        neuro_plan = render_template("prolog_structure_prompt.jinja", question=subject)
 
-        trad_eval = comprehensive_evaluation(trad_plan, domain)
-        neuro_eval = comprehensive_evaluation(neuro_plan, domain)
+        # ** use evaluate_methods to execute the full pipeline **
+        results = evaluate_methods(subject, domain)
 
+        trad_plan = results['traditional']['plan']
+        neuro_plan = results['neuro_symbolic']['plan']
+
+        trad_eval = results['traditional']['evaluation']
+        neuro_eval = results['neuro_symbolic']['evaluation']
+
+        final_judgment = results['final_judgment']
+        final_judgment_scores = results['final_judgment_scores']
+
+        # Optional: Log the inference details if configured
+        if config["log_level"] >= LOG_LEVELS["high"]:
+            inference_log = (
+                f"Question #{idx}: {subject}\n\n"
+                "--- Traditional Plan & Output ---\n"
+                f"{trad_plan}\n\n"
+                "--- Neuro-symbolic Plan & Output ---\n"
+                f"{neuro_plan}\n\n"
+                "--- Final Comparative Judgment of Plans ---\n"
+                f"{final_judgment}"
+            )
+            log_result("high", inference_log, config)
+
+        # Construct detailed scoring table
         detailed_table = f"Question #{idx}: {subject}\n\n"
         for eval_type in eval_types:
             detailed_table += f"### {eval_type.replace('_', ' ').title()} Scores\n"
@@ -83,6 +104,7 @@ def main():
 
         log_result("medium", detailed_table, config)
 
+        # Aggregation logic
         q_aggregate = {'Traditional':{}, 'Neuro-symbolic':{}}
         for criterion in criteria:
             trad_scores = [trad_eval[et]['scores'].get(criterion) for et in eval_types if isinstance(trad_eval[et]['scores'].get(criterion), int)]

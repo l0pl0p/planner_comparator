@@ -44,7 +44,7 @@ def comparative_judgment(output_a: str, output_b: str, original_question: str, d
     return response.choices[0].message.content.strip()
 
 def parse_scores(evaluation_text: str) -> dict:
-    scores = re.findall(r'(Accuracy|Clarity|Completeness|Biases|Ethical|Robustness|Domain Relevance|Overall Robustness):.*?(\d)', evaluation_text)
+    scores = re.findall(r'(Accuracy|Quality|Completeness|Adaptability|Domain Relevance|Robustness):.*?(\d)', evaluation_text)
     return {criterion: int(score) for criterion, score in scores}
 
 def comprehensive_evaluation(plan: str, domain: str) -> dict:

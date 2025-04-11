@@ -50,7 +50,7 @@ def comparative_judgment(output_a: str, output_b: str, original_question: str) -
     }
 
 def parse_comparative_scores(text: str):
-    pattern = r'\|\s*(Accuracy|Clarity|Completeness|Domain Relevance|Robustness)\s*\|\s*(\d)\s*\|\s*(\d)\s*\|'
+    pattern = r'\|\s*(Accuracy|Quality|Completeness|Adaptability|Domain Relevance|Robustness)\s*\|\s*(\d)\s*\|\s*(\d)\s*\|'
     matches = re.findall(pattern, text)
 
     scores_a = {criterion: int(a_score) for criterion, a_score, _ in matches}
@@ -66,27 +66,27 @@ def evaluate_methods(user_question: str, domain: str = DOMAIN) -> dict:
     plan_traditional = generate_legal_plan_prompt_persona(user_question)
     plan_neurosymbolic = generate_legal_plan_prolog(user_question)
 
-    # Execute plans
-    output_traditional = execute_plan(plan_traditional, user_question)
-    output_neurosymbolic = execute_plan(plan_neurosymbolic, user_question)
-
     # Comprehensive evaluations
-    eval_traditional = comprehensive_evaluation(plan_traditional, domain)
-    eval_neurosymbolic = comprehensive_evaluation(plan_neurosymbolic, domain)
+    eval_plan_traditional = comprehensive_evaluation(plan_traditional, domain)
+    eval_plan_neurosymbolic = comprehensive_evaluation(plan_neurosymbolic, domain)
+
+    # Execute plans if you want to comapre results of plan in simple pipeline, add switch for this in future
+    # output_traditional = execute_plan(plan_traditional, user_question)
+    # output_neurosymbolic = execute_plan(plan_neurosymbolic, user_question)
 
     # Comparative judgment with structured scores
-    final_comparison = comparative_judgment(output_traditional, output_neurosymbolic, user_question)
+    final_comparison = comparative_judgment(eval_plan_traditional, eval_plan_neurosymbolic, user_question)
 
     return {
         "traditional": {
             "plan": plan_traditional,
-            "output": output_traditional,
-            "evaluation": eval_traditional
+            #"output": output_traditional,
+            "evaluation": eval_plan_traditional
         },
         "neuro_symbolic": {
             "plan": plan_neurosymbolic,
-            "output": output_neurosymbolic,
-            "evaluation": eval_neurosymbolic
+            #"output": output_neurosymbolic,
+            "evaluation": eval_plan_neurosymbolic
         },
         "final_judgment": final_comparison["text"],
         "final_judgment_scores": final_comparison["scores"]
